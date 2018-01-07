@@ -187,11 +187,10 @@ matrix:
     - compiler: gcc
 
 before_install:
-  - source <(curl -SLs https://raw.githubusercontent.com/bakercp/ofx-ci-scripts/${OF_BRANCH}/install.sh)
+  - source <(curl -SLs https://raw.githubusercontent.com/bakercp/ofx-ci-scripts/${OF_BRANCH}/install-ci.sh)
 install:
   - do_install
 script:
   - do_script
-
 git:
   depth: 10
