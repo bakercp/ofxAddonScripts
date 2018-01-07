@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-
-
-#!/usr/bin/env bash
 set -e
 
 DEFAULT_CLONE_DEPTH=1
