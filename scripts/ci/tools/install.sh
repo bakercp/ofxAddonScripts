@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+OF_CLONE_BRANCH="TEMP-CI"
+OF_CLONE_USERNAME=bakercp
+
+
 DEFAULT_CLONE_DEPTH=1
 
 if [ "$CI" = true ];
