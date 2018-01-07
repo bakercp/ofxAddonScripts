@@ -1,0 +1,3 @@
+ofxPointer
+ofxAddonScripts
+ofxDOM
