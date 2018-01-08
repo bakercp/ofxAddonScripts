@@ -9,6 +9,7 @@
 
 
 #include "ofMain.h"
+#include "AddonScripts.h"
 
 
 class ofApp: public ofBaseApp
