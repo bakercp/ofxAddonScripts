@@ -4,7 +4,6 @@ set -e
 OF_CLONE_BRANCH="TEMP-CI"
 OF_CLONE_USERNAME=bakercp
 
-
 DEFAULT_CLONE_DEPTH=1
 
 if [ "$CI" = true ];
@@ -52,6 +51,9 @@ echo "  OF_ADDONS_DIR: ${OF_ADDONS_DIR}"
 echo "THIS_ADDON_NAME: ${THIS_ADDON_NAME}"
 echo " THIS_ADDON_DIR: ${THIS_ADDON_DIR}"
 
+echo "---------------------"
+bash --version
+echo "---------------------"
 
 # Takes a string and removes all duplicate tokens.
 function sort_and_remove_duplicates()
