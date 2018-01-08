@@ -33,7 +33,8 @@ matrix:
 
 before_install:
   # No fancy source stuff here because the version of bash on Travis / macOS is too old.
-  - curl -SLsO https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh && source install.sh
+  - curl -SLsO https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh
+  - source install.sh
 install:
   - do_install
 script:
