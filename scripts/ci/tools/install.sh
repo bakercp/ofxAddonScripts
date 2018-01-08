@@ -176,34 +176,17 @@ export MAKEFLAGS=-s
 
 
 function do_install {
-    echo "1. Doing install ..."
     cd ~
-
-    echo "2. Doing install ..."
-
-#    git clone --depth=${OF_CLONE_DEPTH} --branch=${OF_CLONE_BRANCH} https://github.com/${OF_CLONE_USERNAME}/openFrameworks
-
-    git clone --depth=1 --branch="TEMP-CI" https://github.com/bakercp/openFrameworks
-    echo "3. Doing install ..."
-
+    git clone --depth=${OF_CLONE_DEPTH} --branch=${OF_CLONE_BRANCH} https://github.com/${OF_CLONE_USERNAME}/openFrameworks
     cd openFrameworks
-
-    echo "4. Doing install ..."
-
     scripts/ci/addons/install.sh
-
-    echo "5. Doing install ..."
-
-    echo "$(get_all_dependencies_for_addon ${THIS_ADDON_DIR})"
-
-    clone_addons "$(get_all_dependencies_for_addon ${THIS_ADDON_DIR})"
-
-    echo "6. Doing install ..."
-
+    clone_addons $(get_all_dependencies_for_addon ${THIS_ADDON_DIR})
 }
 
 
 function do_script {
+    cd ~
+    cd openFrameworks
     scripts/ci/addons/build.sh
 }
 
