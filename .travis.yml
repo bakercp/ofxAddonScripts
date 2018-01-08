@@ -1,19 +1,6 @@
-# This file allows testing your addon using travis CI servers to use it you'll need to
-# create an account in travis.org and enable your addon there.
-#
-# By default it will test linux 64bit and osx against the master and stable OF branches.
-# Other platforms can be enabled by uncommenting the corresponding sections.
-#
-# If any extra install is needed to use the addon it can be included in the corresponding
-# install script in:
-#
-# scripts/ci/$TARGET/install.sh
-#
-
-
 language: c++
 compiler: gcc
-sudo: true
+sudo: required
 matrix:
   include:
   # fully specify builds, include can't dynamically expand matrix entries
@@ -48,7 +35,7 @@ matrix:
 
 # Linux ARM7, OF master: Uncomment following lines to enable
   - os: linux
-    sudo: false
+    sudo: required
     env: TARGET="linuxarmv7l" OF_BRANCH="master"
     cache:
       directories:
@@ -58,7 +45,7 @@ matrix:
 
 # Android armv7, OF master: Uncomment following lines to enable
   - os: linux
-    sudo: false
+    sudo: required
     env: TARGET="android" OPT="armv7" OF_BRANCH="master"
     cache:
       directories:
@@ -66,7 +53,7 @@ matrix:
 
 # Android x86, OF master: Uncomment following lines to enable
   - os: linux
-    sudo: false
+    sudo: required
     env: TARGET="android" OPT="x86" OF_BRANCH="master"
     cache:
       directories:
@@ -78,6 +65,7 @@ matrix:
     - compiler: gcc
 
 before_install:
+  - echo "https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh"
   - source <(curl -SLs https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh)
 install:
   - do_install
@@ -85,4 +73,3 @@ script:
   - do_script
 git:
   depth: 10
-  
