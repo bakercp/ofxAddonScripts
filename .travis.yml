@@ -33,12 +33,15 @@ matrix:
     - compiler: gcc
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
-  - source <(curl -SLs https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh)
+  - curl -SLsO https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh
+  - source install.sh
 install:
-  - do_install
+  - cd ~
+  - git clone --depth=${OF_CLONE_DEPTH} --branch=${OF_CLONE_BRANCH} https://github.com/${OF_CLONE_USERNAME}/openFrameworks
+  - cd openFrameworks
+  - scripts/ci/addons/install.sh
+  - clone_addons $(get_all_dependencies_for_addon ${THIS_ADDON_DIR})
 script:
-  - do_script
+  - scripts/ci/addons/build.sh
 git:
   depth: 10
