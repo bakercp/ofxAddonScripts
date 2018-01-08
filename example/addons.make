@@ -1,1 +1,1 @@
-ofAddonScripts
+ofxAddonScripts
