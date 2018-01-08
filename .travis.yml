@@ -36,6 +36,7 @@ before_install:
   - curl -SLsO https://raw.githubusercontent.com/bakercp/ofxAddonScripts/${OF_BRANCH}/scripts/ci/tools/install.sh
   - source install.sh
 install:
+  - ls -la ~
   - cd ~
   - git clone --depth=${OF_CLONE_DEPTH} --branch=${OF_CLONE_BRANCH} https://github.com/${OF_CLONE_USERNAME}/openFrameworks
   - cd openFrameworks
