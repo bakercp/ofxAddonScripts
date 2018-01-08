@@ -1,1 +1,3 @@
 ofxAddonScripts
+ofxPS3EyeGrabber
+ofxMUI
