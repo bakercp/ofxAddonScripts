@@ -5,10 +5,8 @@ set -e
 
 echo "Downloading models and data ..."
 
-ADDON_PATH=$( cd $(dirname $0)/../../ ; pwd -P )
-SCRIPTS_PATH=$ADDON_PATH/scripts
-MODELS_PATH=$ADDON_PATH/models
-DATA_PATH=$ADDON_PATH/data
+export DEBUG=true
+source $( cd "$( dirname "${BASH_SOURCE[0]}" )/../.."  && pwd )/scripts/shared/paths.sh
 
 # echo ""
 # echo "Download Caltech256 Image data"
@@ -68,9 +66,8 @@ DATA_PATH=$ADDON_PATH/data
 # popd > /dev/null
 
 echo ""
-echo "Downloading MNIST ..."
-mnist_data_base_url="http://yann.lecun.com/exdb/mnist/"
-mnist_data_compressed_suffix=".gz"
+echo "Installing MNIST data ..."
+mnist_data_base_url="http://yann.lecun.com/exdb/mnist"
 mnist_data=(
   "train-images-idx3-ubyte"
   "train-labels-idx1-ubyte"
@@ -78,31 +75,20 @@ mnist_data=(
   "t10k-labels-idx1-ubyte"
 )
 
-mkdir -p $DATA_PATH/mnist
-pushd $DATA_PATH/mnist > /dev/null
-
+MNIST_PATH=${THIS_ADDON_SHARED_DATA_PATH}/mnist
+mkdir -p ${MNIST_PATH}
 for mnist_datum in "${mnist_data[@]}"
 do
-  mnist_datum_compressed=$mnist_datum$mnist_data_compressed_suffix
-  if ! [ -f $mnist_datum ] && ! [ -f $mnist_datum_compressed ] ; then
-    curl -L -O --progress-bar $mnist_data_base_url/$mnist_datum_compressed
-  else
-    echo "- Exists: Skipping download $mnist_datum"
+  if ! [ -f ${MNIST_PATH}/${mnist_datum} ]; then
+    curl -L --progress-bar ${mnist_data_base_url}/${mnist_datum}.gz | gunzip > ${MNIST_PATH}/${mnist_datum}
   fi
-
-  if ! [ -f $mnist_datum ] ; then
-    echo "Decompressing $mnist_datum_compressed"
-    #gunzip $mnist_datum_compressed
-  else
-    echo "- Exists: Skipping decompression $mnist_datum_compressed"
-  fi
+  echo "✔ ${MNIST_PATH}/${mnist_datum}"
 done
 
-popd > /dev/null
 
+echo "Installing dlib models ..."
 # dlib_model_base_url="http://dlib.net/files"
 dlib_model_base_url="https://github.com/bakercp/ofxDlib/releases/download/models/"
-dlib_model_compressed_suffix=".bz2"
 dlib_models=(
   "dlib_face_recognition_resnet_model_v1.dat"
   "mmod_dog_hipsterizer.dat"
@@ -111,79 +97,73 @@ dlib_models=(
   "shape_predictor_68_face_landmarks.dat"
 )
 
+MODELS_PATH=${THIS_ADDON_SHARED_DATA_PATH}/models
+mkdir -p ${MODELS_PATH}
 for dlib_model in "${dlib_models[@]}"
 do
-  dlib_model_compressed=$dlib_model$dlib_model_compressed_suffix
-  dlib_model_compressed_path=$MODELS_PATH/$dlib_model_compressed
-  dlib_model_path=$MODELS_PATH/$dlib_model
+  if ! [ -f ${MODELS_PATH}/${dlib_model} ]; then
+    curl -L --progress-bar ${dlib_model_base_url}/${dlib_model}.bz2 | bunzip2 > ${MODELS_PATH}/${dlib_model}
+  fi
+  echo "✔ ${MODELS_PATH}/${dlib_model}"
+done
 
-  echo "Downloading: $dlib_model"
+echo "Installing media ..."
+media=(
+  "https://upload.wikimedia.org/wikipedia/commons/b/be/July_4_crowd_at_Vienna_Metro_station.jpg Crowd.jpg"
+  "https://upload.wikimedia.org/wikipedia/commons/9/90/RobertCornelius.jpg"
+)
 
-  if ! [ -f $dlib_model_path ] && ! [ -f $dlib_model_compressed_path ] ; then
-    curl -L -o $dlib_model_compressed_path --progress-bar $dlib_model_base_url/$dlib_model_compressed
-  else
-    echo "- Exists: Skipping download $model"
+MEDIA_PATH=${THIS_ADDON_SHARED_DATA_PATH}
+for entry in "${media[@]}"
+do
+  tokens=(${entry})
+  source=${tokens[0]}
+  destination=${tokens[1]:-$(basename ${source})}
+  if ! [ -f ${destination} ]; then
+    curl -L --create-dirs -o ${destination} --progress-bar ${source}
+  fi
+  echo "✔ ${destination}"
+done
+
+echo "Done."
+
+function copy_shared_data_for_examples()
+{
+  if [ -z "$1" ]; then
+    echo "Usage: install_data_for_examples <path_to_addon>"
+    return 1
   fi
 
-  if ! [ -f $dlib_model_path ] ; then
-    echo "Decompressing $dlib_model_compressed_path"
-    bzip2 -d $dlib_model_compressed_path
-  else
-    echo "- Exists: Skipping decompression $model"
-  fi
+  # Form the shared data path.
+  addon_shared_data_path=${1}/shared/data
 
-  echo ""
-done
-
-echo ""
-echo "Installing example models ..."
-
-for required_models in `ls $ADDON_PATH/example*/bin/data/required_models.txt`
-do
-  while read model || [ -n "$model" ];
+  for required_data in $(ls ${1}/example*/bin/data/REQUIRED_DATA.txt)
   do
-    echo $required_models
-    rsync -Prvaq $MODELS_PATH/$model $(dirname $required_models)
-  done < $required_models
-  echo ""
-done
+    # For the example data path.
+    example_data_path=$(dirname ${required_data})
 
-echo ""
-echo "Installing example data ..."
+    # The || [ -n "$line" ]; is to help when the last line isn't a new line char.
+    while read line || [ -n "$line" ];
+    do
+      # Make sure the data doesn't start with a comment hash #
+      # Make sure that it isn't am empty line.
+      if [ "${line:0:1}" != "#"  ] && [ -n "${line// }" ]; then
+        # Turn the line into an array (space delimited).
+        tokens=($line)
+        # Get the first token -- the source location.
+        data_source=${tokens[0]}
 
-for required_data in `ls $ADDON_PATH/example*/bin/data/required_data.txt`
-do
-  while read data || [ -n "$data" ];
-  do
-    echo $required_data
-    rsync -Prvaq $DATA_PATH/$data $(dirname $required_data)
-  done < $required_data
-  echo ""
-done
+        if [ -e ${addon_shared_data_path}/${data_source} ]; then
+          rsync -Pqar ${addon_shared_data_path}/${data_source} ${example_data_path}
+        else
+          echo "${addon_shared_data_path}/${data_source} does not exist. Did you install the data?"
+        fi
+      fi
+    done < $required_data
+  done
+  return 0
+}
 
-echo ""
-echo "Downloading example media ..."
 
-for required_media in `ls $ADDON_PATH/example*/bin/data/required_media.txt`
-do
-  # Move into this directory. > /dev/null consumes the output.
-  pushd $(dirname $required_media)/ > /dev/null
 
-  # The || [ -n "$line" ]; is to help when the last line isn't a new line char.
-  while read line || [ -n "$line" ];
-  do
-    tokens=($line)
-    destination=${tokens[0]}
-    url=${tokens[1]}
-
-    if ! [ -f $destination ] ; then
-      echo "Downloading $url"
-      curl -L -o $destination --progress-bar $url
-    else
-      echo "- Exists: Skipping $destination"
-    fi
-  done < $required_media
-  popd > /dev/null
-  echo ""
-done
-
+copy_shared_data_for_examples ../..

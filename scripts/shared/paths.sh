@@ -32,7 +32,7 @@ OF_APOTHECARY_PATH=${OF_APOTHECARY_PATH:-${OF_SCRIPTS_PATH}/apothecary}
 
 # Addon paths.
 THIS_ADDON_PATH=${THIS_ADDON_PATH:-${OF_ADDONS_PATH}/${THIS_ADDON_NAME}}
-THIS_ADDON_SHARED_PATH=${THIS_ADDON_SHARED_PATH:-${OF_ADDONS_PATH}/shared}
+THIS_ADDON_SHARED_PATH=${THIS_ADDON_SHARED_PATH:-${THIS_ADDON_PATH}/shared}
 THIS_ADDON_SHARED_DATA_PATH=${THIS_ADDON_SHARED_DATA_PATH:-${THIS_ADDON_SHARED_PATH}/data}
 THIS_ADDON_SCRIPTS_PATH=${THIS_ADDON_SCRIPTS_PATH:-${THIS_ADDON_PATH}/scripts}
 
@@ -55,8 +55,7 @@ if [ "$DEBUG" = true ]; then
   echo ""
   echo "                         THIS_ADDON_NAME: ${THIS_ADDON_NAME}"
   echo "                         THIS_ADDON_PATH: ${THIS_ADDON_PATH}"
-  echo "                  THIS_ADDON_MODELS_PATH: ${THIS_ADDON_MODELS_PATH}"
-  echo "                    THIS_ADDON_DATA_PATH: ${THIS_ADDON_DATA_PATH}"
+  echo "             THIS_ADDON_SHARED_DATA_PATH: ${THIS_ADDON_SHARED_DATA_PATH}"
   echo "                 THIS_ADDON_SCRIPTS_PATH: ${THIS_ADDON_SCRIPTS_PATH}"
   echo ""
   echo "                           THIS_USERNAME: ${THIS_USERNAME}"
@@ -71,7 +70,3 @@ if [ "$DEBUG" = true ]; then
   echo "                    ADDON_CLONE_USERNAME: ${ADDON_CLONE_USERNAME}"
   echo "================================================================================"
 fi
-
-
-
-

@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
+function realpath()
+{
+  [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+# # Requires that the path exist.
+# function make_absolute()
+# {
+#   if [ -z "$1" ]; then
+#     echo "Usage: make_absolute \"<relative_path>\" <?relative_to>"
+#     return 1
+#   fi
+#
+#   echo $(basename $( cd ${2:-$(pwd)}/${1} && pwd ))
+# }
+
 # Utility functions.
 function lowercase()
 {
@@ -155,69 +171,188 @@ function clone_addons()
 
 
 # Assets
-function install_data_for_examples()
+function copy_shared_for_examples()
 {
   if [ -z "$1" ]; then
     echo "Usage: install_data_for_examples <path_to_addon>"
     return 1
   fi
 
+  # Form the shared data path.
+  addon_shared_data_path=${1}/shared/data
+
   for required_data in $(ls ${1}/example*/bin/data/REQUIRED_DATA.txt)
   do
-    while read data || [ -n "$data" ];
+    # For the example data path.
+    example_data_path=$(dirname ${required_data})
+
+    # The || [ -n "$line" ]; is to help when the last line isn't a new line char.
+    while read line || [ -n "$line" ];
     do
       # Make sure the data doesn't start with a comment hash #
       # Make sure that it isn't am empty line.
-      if [ "${data:0:1}" != "#"  ] && [ -n "${data// }" ]; then
-        file_path=$(echo ${data} | cut -d, -f1)
-        file_basename=$(basename "${file_path}")
-        file_extension="${file_basename##*.}"
-        file_name="${file_basename%.*}"
+      if [ "${line:0:1}" != "#"  ] && [ -n "${line// }" ]; then
+        # Turn the line into an array (space delimited).
+        tokens=($line)
+        # Get the first token -- the source location.
+        data_source=${tokens[0]}
+        # Get the second token -- is the desination path.
+        data_target=${tokens[1]}
 
-        url=$(echo ${data} | cut -d, -f2)
-        url_basename=$(basename "${url}")
-        url_extension="${url_basename##*.}"
-        url_name="${file_basename%.*}"
+        if [[ ${data_source} == http* ]]; then
+          echo "Source is URL"
+          data_source_basename=$(basename "${data_source_shared}")
+          data_source_extension="${data_source_basename##*.}"
 
-        if [ ${file_extension} != ${url_extension} ]; then
-          if ${url_extension} == "bz2" ]; then
-            curl -LO ${url_basename} && bunzip2 ${url_basename} file_path 
-          elif [ ${url_extension} == "zip" ]; then
-            curl -L ${url} | bunzip2 > ${file_path}
-          elif [ ${url_extension} == "tar.gz" ]; then
-            curl -L ${url} | tar xvf > ${file_path}
-          elif [ ${url_extension} == "gz" ]; then
+          data_target_dirname=$(dirname "${data_target_shared}")
+          data_target_basename=$(basename "${data_target_shared}")
+          data_target_extension="${data_target_basename##*.}"
+          data_target_name="${data_target_basename%.*}"
+
+          echo "data_source_basename ${data_source_basename}"
+          echo "data_source_extension ${data_source_extension}"
+          echo "data_target_dirname ${data_target_dirname}"
+          echo "data_target_extension ${data_target_extension}"
+          echo "data_target_name ${data_target_name}"
+
+          if [ ! -e ${data_target_shared} ]; then
+            echo "Don't have the target: ${data_target_shared}"
+
+            if [ ${data_source_extension} != ${data_target_extension} ]; then
+              echo "we need decompress."
+              if [[ ${data_source_shared} == *.bz2 ]]; then
+                curl --progress-bar --create-dirs -o ${data_target_shared}.bz2 -L ${data_source_shared} && bunzip2 ${data_target_shared}.bz2
+              elif [[ ${data_source_shared} == *.zip ]]; then
+                # echo "curl --progress-bar --create-dirs -o ${data_target_shared}.zip -L ${data_source_shared} && unzip -qo -d ${shared_file_dirname} ${data_target_shared}.zip && rm ${data_target_shared}.zip"
+                echo "curl --progress-bar --create-dirs -o ${data_target_shared}.zip -L ${data_source_shared} && unzip -qo -d ${shared_file_dirname} ${data_target_shared}.zip"
+                # curl --progress-bar --create-dirs -o ${data_target_shared}.zip -L ${data_source_shared} && unzip -qo -d ${shared_file_dirname} ${data_target_shared}.zip && rm ${data_target_shared}.zip
+                curl --progress-bar --create-dirs -o ${data_target_shared}.zip -L ${data_source_shared} && unzip -qo -d ${shared_file_dirname} ${data_target_shared}.zip
+              # elif [[ ${url} == *.tar.gz ]]; then
+              #
+              #   echo ${shared_file_dirname}
+              #   echo "curl --progress-bar --create-dirs -o ${shared_file_path}.tar.gz -L ${url} && tar -xf ${shared_file_path}.tar.gz -C ${shared_file_dirname} && rm ${shared_file_path}.tar.gz"
+              #
+              #   curl --progress-bar --create-dirs -o ${shared_file_path}.tar.gz -L ${url} && tar -xf ${shared_file_path}.tar.gz -C ${shared_file_dirname} && rm ${shared_file_path}.tar.gz
+              # elif [[ ${url} == *.gz ]]; then
+              #   curl --progress-bar --create-dirs -o ${shared_file_path}.gz -L ${url} && tar -xf ${shared_file_path}.gz -C ${shared_file_dirname} && rm ${shared_file_path}.gz
+              else
+                echo "Unknown file extension \"${url}\" and it doesn't match \"${file_path}\" ... skipping."
+                continue
+              fi
+            else
+              echo "DL"
+              curl --progress-bar --create-dirs -o ${data_target_shared} -L ${data_source_shared}
+            fi
 
 
 
+            #
+            # if [ ${file_extension} != ${url_extension} ]; then
+            #   if [[ ${url} == *.bz2 ]]; then
+            #     curl --progress-bar --create-dirs -o ${shared_file_path}.bz2 -L ${url} && bunzip2 ${shared_file_path}.bz2
+            #   elif [[ ${url} == *.zip ]]; then
+            #     curl --progress-bar --create-dirs -o ${shared_file_path}.zip -L ${url} && unzip -qo -d ${shared_file_dirname} ${shared_file_path}.zip && rm ${shared_file_path}.zip
+            #   elif [[ ${url} == *.tar.gz ]]; then
+            #
+            #     echo ${shared_file_dirname}
+            #     echo "curl --progress-bar --create-dirs -o ${shared_file_path}.tar.gz -L ${url} && tar -xf ${shared_file_path}.tar.gz -C ${shared_file_dirname} && rm ${shared_file_path}.tar.gz"
+            #
+            #     curl --progress-bar --create-dirs -o ${shared_file_path}.tar.gz -L ${url} && tar -xf ${shared_file_path}.tar.gz -C ${shared_file_dirname} && rm ${shared_file_path}.tar.gz
+            #   elif [[ ${url} == *.gz ]]; then
+            #     curl --progress-bar --create-dirs -o ${shared_file_path}.gz -L ${url} && tar -xf ${shared_file_path}.gz -C ${shared_file_dirname} && rm ${shared_file_path}.gz
+            #   else
+            #     echo "Unknown file extension \"${url}\" and it doesn't match \"${file_path}\" ... skipping."
+            #     continue
+            #   fi
+            # else
+            #   curl --progress-bar --create-dirs -o ${shared_file_path} -L ${url}
+            # fi
+          fi
+          echo "Woof rsync -Pqar ${data_target_shared} ${data_target_dirname}/"
+          rsync -Pqar ${data_target_shared} ${data_target_dirname}/
+
+        elif [ -e ${addon_shared_data_path}/${data_source} ]; then
+          echo "Itrm data_source_shared"
+          rsync -Pqar ${addon_shared_data_path}/${data_source} ${example_data_path}/${data_target}
+          continue
         else
-
+          echo "Source is file and it does not exist. Did you install the data? Skipping ..."
+          continue
         fi
 
 
 
 
 
-        echo ${url}
-        echo ${url_basename}
-        echo ${url_extension}
-        echo ${url_name}
+
+        # file_dirname=$(dirname "${file_path}")
         #
-
-
+        # file_basename=$(basename "${file_path}")
+        # file_extension="${file_basename##*.}"
+        # file_name="${file_basename%.*}"
+        #
+        # url=$(echo ${data} | cut -d, -f2)
+        #
+        # # See if we have a URL.
+        # if [ ${file_path} != ${url} ]; then
+        #   url_basename=$(basename "${url}")
+        #   url_extension="${url_basename##*.}"
+        #   url_name="${file_basename%.*}"
+        #
+        #   shared_file_path=${addon_shared_data_path}/${file_path}
+        #   shared_file_dirname=$(dirname "${shared_file_path}")
+        #
+        #   # echo ${url}s
+        #   # echo ${url_basename}
+        #   # echo ${url_extension}
+        #   # echo ${url_name}
+        #
+        #   echo ${shared_file_path}
+        #   echo ${shared_file_dirname}
+        #
+        #   if [ ! -e ${shared_file_path} ]; then
+        #     if [ ${file_extension} != ${url_extension} ]; then
+        #       if [[ ${url} == *.bz2 ]]; then
+        #         curl --progress-bar --create-dirs -o ${shared_file_path}.bz2 -L ${url} && bunzip2 ${shared_file_path}.bz2
+        #       elif [[ ${url} == *.zip ]]; then
+        #         curl --progress-bar --create-dirs -o ${shared_file_path}.zip -L ${url} && unzip -qo -d ${shared_file_dirname} ${shared_file_path}.zip && rm ${shared_file_path}.zip
+        #       elif [[ ${url} == *.tar.gz ]]; then
+        #
+        #         echo ${shared_file_dirname}
+        #         echo "curl --progress-bar --create-dirs -o ${shared_file_path}.tar.gz -L ${url} && tar -xf ${shared_file_path}.tar.gz -C ${shared_file_dirname} && rm ${shared_file_path}.tar.gz"
+        #
+        #         curl --progress-bar --create-dirs -o ${shared_file_path}.tar.gz -L ${url} && tar -xf ${shared_file_path}.tar.gz -C ${shared_file_dirname} && rm ${shared_file_path}.tar.gz
+        #       elif [[ ${url} == *.gz ]]; then
+        #         curl --progress-bar --create-dirs -o ${shared_file_path}.gz -L ${url} && tar -xf ${shared_file_path}.gz -C ${shared_file_dirname} && rm ${shared_file_path}.gz
+        #       else
+        #         echo "Unknown file extension \"${url}\" and it doesn't match \"${file_path}\" ... skipping."
+        #         continue
+        #       fi
+        #     else
+        #       curl --progress-bar --create-dirs -o ${shared_file_path} -L ${url}
+        #     fi
+        #   else
+        #     :
+        #   #  echo "${shared_file_path} exists, skipping."
+        #   fi
+        #
+        #   rsync -Prvaq ${shared_file_path} ${example_data_path}
+        #
+        # else
+        #   rsync -Prvaq ${shared_file_path}/ ${example_data_path}
+        # fi
+        #
 
       fi
 
-      # rsync -Prvaq ${1}/${2}/$model $(dirname $required_data)
+
     done < $required_data
   done
   return 0
 }
 
 
-
-install_data_for_examples /Users/bakercp/Desktop/openFrameworks/addons/ofxAddonScripts
-
+install_data_for_examples ../..
 
 # echo ""
 # echo "Downloading example media ..."
@@ -244,6 +379,3 @@ install_data_for_examples /Users/bakercp/Desktop/openFrameworks/addons/ofxAddonS
 #   popd > /dev/null
 #   echo ""
 # done
-
-
-

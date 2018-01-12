@@ -1,15 +1,8 @@
-# List required data below.
-# Relative paths resolve with respect to the ${ADDON_PATH}/shared folder.
-
-
-
-# <SAVE_NAME_PATH relative to ${ADDON_PATH}/shared folder>,<DOWNLOAD URL>
-images/Crowd.jpg,https://upload.wikimedia.org/wikipedia/commons/b/be/July_4_crowd_at_Vienna_Metro_station.jpg
-# RobertCornelius.jpg,https://upload.wikimedia.org/wikipedia/commons/9/90/RobertCornelius.jpg
-# models/dlib_face_recognition_resnet_model_v1.dat,https://github.com/bakercp/ofxDlib/releases/download/models/dlib_face_recognition_resnet_model_v1.dat.bz2
-# models/mmod_dog_hipsterizer.dat,https://github.com/bakercp/ofxDlib/releases/download/models/mmod_dog_hipsterizer.dat.bz2
-models/mmod_human_face_detector.dat,https://github.com/bakercp/ofxDlib/releases/download/models/mmod_human_face_detector.dat.bz2
-# models/resnet34_1000_imagenet_classifier.dnn,https://github.com/bakercp/ofxDlib/releases/download/models/resnet34_1000_imagenet_classifier.dnn.bz2
-# models/shape_predictor_68_face_landmarks.dat,https://github.com/bakercp/ofxDlib/releases/download/models/shape_predictor_68_face_landmarks.dat.bz2
-models/models,https://github.com/bakercp/ofxDlib/archive/models.tar.gz
-models/moremodels,https://github.com/bakercp/ofxDlib/archive/models.zip
+Crowd.jpg
+RobertCornelius.jpg
+models/dlib_face_recognition_resnet_model_v1.dat
+models/mmod_dog_hipsterizer.dat
+models/mmod_human_face_detector.dat
+models/resnet34_1000_imagenet_classifier.dnn
+models/shape_predictor_68_face_landmarks.dat
+mnist/
